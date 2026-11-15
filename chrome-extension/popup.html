@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fynd Studio Try-On</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <strong>Fynd Studio</strong>
+      <span>Upload a garment or choose one from a product page</span>
+    </header>
+    <label class="target-label" for="target">Try-on page</label>
+    <div class="target-row">
+      <input id="target" type="url" value="http://127.0.0.1:5173/share.html" />
+      <button id="save" type="button">Save</button>
+    </div>
+    <label class="target-label" for="prep">AI garment preparation URL</label>
+    <input id="prep" class="wide-input" type="url" value="http://127.0.0.1:8787/prepare" />
+    <p class="hint">After you confirm the crop, Fynd Studio prepares the garment here. Start the local prep server first.</p>
+    <label class="target-label" for="prep-token">AI preparation access token</label>
+    <input id="prep-token" class="wide-input" type="password" autocomplete="new-password" placeholder="Stored in this browser only" />
+    <button id="upload" class="upload-button" type="button">Upload a photo from this computer</button>
+    <input id="file" type="file" accept="image/*" hidden />
+    <p class="hint">Open the try-on page once first so its saved sign-in and settings are available.</p>
+    <section id="selected-photo" class="selected-photo" hidden aria-live="polite">
+      <img id="selected-preview" alt="Selected garment photo preview" />
+      <div class="selected-details">
+        <strong id="selected-name"></strong>
+        <button id="send-selected" type="button">Use this photo</button>
+        <button id="clear-selected" class="secondary-button" type="button">Choose another</button>
+      </div>
+    </section>
+    <p id="status" role="status">Looking for product images…</p>
+    <div id="images" class="images" aria-label="Images on this page"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>

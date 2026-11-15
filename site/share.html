@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14121f" />
+    <title>Fynd Studio Try-On</title>
+    <meta name="description" content="Try tops and jackets on live with your camera, or on a photo of yourself." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%236d4aff'/%3E%3Cpath d='M20 18h24v8H29v6h13v8H29v8h-9z' fill='white'/%3E%3C/svg%3E" />
+    <style>
+      .share-intro { max-width: 1240px; margin: 0 auto; padding: 28px 20px 4px; display: grid; gap: 10px; }
+      .share-intro h1 { font-size: clamp(1.9rem, 4.5vw, 3rem); line-height: 1.05; margin: 0; letter-spacing: -0.02em; }
+      .share-intro h1 em { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .share-intro .lede { margin: 0; color: var(--ink-2); max-width: 44em; }
+      .share-intro .mode-tabs { margin: 8px 0 0; justify-self: start; }
+      .panel-title { margin: 0; font-weight: 700; }
+      .panel-note { margin: 0; color: var(--ink-2); font-size: 0.92rem; }
+      .status-line { margin: 0; font-size: 0.92rem; color: var(--ink-2); min-height: 1.3em; }
+      .status-line.is-error { color: #d23b5a; }
+      .photo-stage { display: grid; place-items: center; overflow: hidden; }
+      .photo-stage img { width: 100%; height: 100%; object-fit: contain; background: #0d0b14; }
+      /* with a picture: the stage takes the picture's own shape, so the whole photo shows, never cropped */
+      .photo-stage:has(img:not([hidden])) { aspect-ratio: auto; max-height: none; background: #0d0b14; }
+      .photo-stage:has(img:not([hidden])) img { height: auto; max-height: 80vh; }
+      .photo-bar { display: grid; gap: 10px; margin-top: 12px; }
+      /* phone held upright: a tall stage, so the whole camera picture shows */
+      .lab-stage.is-portrait { aspect-ratio: 9 / 16; max-height: 78vh; margin-inline: auto; }
+      @media (max-width: 640px) { .lab-stage.is-portrait { aspect-ratio: 9 / 16; max-height: 78vh; } }
+      .photo-bar .status-line { margin: 0; }
+      .photo-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+      .share-hidden { display: none !important; }
+      .bench[hidden] { display: none; }
+      #badge { display: none !important; }
+      .stage-tools .icon-btn[hidden] { display: none; }
+      .footer a { color: inherit; }
+      html, body { overflow-x: hidden; }
+      .garment-filters { display: grid; gap: 8px; margin-bottom: 12px; }
+      .garment-filters .chips { flex-wrap: wrap; }
+      .garment-filters .chip { padding: 6px 12px; font-size: .8rem; }
+      .garment-filters .gender-tabs { gap: 6px; }
+      .garment-filters .gender-tabs .chip { flex: 1; padding: 9px 14px; font-size: .92rem; text-align: center; }
+      .grid.live-grid { max-height: min(62vh, 620px); overflow-y: auto; }
+      @media (max-width: 640px) {
+        .share-intro { padding: 18px 16px 0; }
+        .share-intro h1 { font-size: 1.75rem; }
+        .share-intro .lede { font-size: 0.95rem; }
+        .lab-main { padding: 12px 16px 20px; gap: 14px; }
+        .lab-stage { aspect-ratio: 4 / 3; border-radius: 20px; }
+        .photo-stage:has(img:not([hidden])) img { max-height: 70vh; }
+        .photo-actions .btn { flex: 1 1 40%; }
+        /* every garment visible at once on a phone: a wrapping grid, not a sideways strip */
+        .grid.live-grid { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-columns: auto; overflow: visible; max-height: none; margin-inline: 0; padding-inline: 0; }
+        .lab-panel { padding: 14px; border-radius: 20px; }
+        .overlay h3 { font-size: 1.2rem; }
+        .overlay p { font-size: 0.92rem; }
+        .footer { padding: 16px; flex-direction: column; gap: 6px; }
+      }
+    </style>
+  </head>
+  <body class="lab">
+    <header class="nav">
+      <span class="brand">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        <span class="brand-name">Fynd <b>Studio</b> · Virtual Try-On</span>
+      </span>
+    </header>
+
+    <section class="share-intro">
+      <h1>See it on <em>you</em>, live or from a photo.</h1>
+      <p class="lede">
+        Pick a top or jacket. Switch on your camera and move, or upload a photo for a realistic picture.
+        Both run on our own GPU server.
+      </p>
+      <div class="mode-tabs" role="tablist" aria-label="Try-on mode">
+        <button class="tab is-active" role="tab" id="tab-live" aria-selected="true" aria-controls="live-stage">Live camera</button>
+        <button class="tab" role="tab" id="tab-photo" aria-selected="false" aria-controls="photo-stage">Photo</button>
+      </div>
+    </section>
+
+    <main class="lab-main">
+      <div>
+        <!-- live camera -->
+        <div class="stage lab-stage" id="live-stage">
+          <canvas id="view" aria-label="Live try-on"></canvas>
+          <video id="self" class="self-view" playsinline autoplay muted aria-label="Your camera"></video>
+          <div class="overlay" id="ov-start">
+            <h3>Live try-on</h3>
+            <p>Your camera streams to our GPU, which dresses you in the garment while you move.</p>
+            <button class="btn btn-primary" id="btn-start">Start camera</button>
+            <p class="fine">Video goes only to our server, is processed in memory and is never stored.</p>
+          </div>
+          <div class="overlay overlay-dim" id="ov-loading" hidden>
+            <div class="spinner" aria-hidden="true"></div>
+            <p id="loading-text">Connecting…</p>
+          </div>
+          <div class="overlay overlay-dim" id="ov-error" hidden>
+            <h3>Couldn't start</h3>
+            <p id="error-text"></p>
+            <button class="btn btn-ghost-light" id="btn-error-ok">OK</button>
+          </div>
+          <div class="hint" id="prompt" hidden></div>
+          <div class="badge" id="badge" hidden></div>
+          <div class="stage-tools" id="tools" hidden>
+            <button class="icon-btn" id="btn-stop">Stop</button>
+          </div>
+        </div>
+
+        <!-- photo -->
+        <div class="stage lab-stage photo-stage" id="photo-stage" hidden>
+          <label class="drop" id="drop" for="photo-file">
+            <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true" fill="currentColor"><path d="M12 3 7.5 7.5l1.4 1.4L11 6.8V15h2V6.8l2.1 2.1 1.4-1.4L12 3ZM5 17v2h14v-2h2v4H3v-4h2Z"/></svg>
+            <strong>Upload a photo of yourself</strong>
+            <span class="fine">Facing the camera, upper body visible. JPG or PNG.</span>
+          </label>
+          <input id="photo-file" type="file" accept="image/*" hidden />
+          <img id="photo-view" alt="Your try-on result" hidden />
+          <div class="overlay overlay-dim" id="photo-busy" hidden>
+            <div class="spinner" aria-hidden="true"></div>
+            <p>Dressing you in the garment… about 5–10 seconds</p>
+          </div>
+        </div>
+        <!-- photo actions sit right under the picture -->
+        <div id="photo-options" class="photo-bar" hidden>
+          <p class="status-line" id="photo-status">Upload a photo to begin.</p>
+          <div class="photo-actions">
+            <button class="btn btn-primary btn-small" id="btn-render" type="button" disabled>Try it on</button>
+            <button class="btn btn-ghost btn-small" id="btn-save" type="button" disabled>Download</button>
+            <button class="btn btn-ghost btn-small" id="btn-compare" type="button" disabled>Hold to see original</button>
+            <button class="btn btn-ghost btn-small" id="btn-new-photo" type="button">Choose another photo</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="lab-panel" aria-label="Garments and options">
+        <p class="panel-title">Choose a garment</p>
+        <div class="garment-filters" id="garment-filters" aria-label="Filter garments"></div>
+        <div class="grid live-grid" id="grid" role="listbox" aria-label="Garments"></div>
+        <p class="panel-note" id="upload-note"></p>
+        <div class="describe" id="upload-describe" hidden></div>
+
+        <div id="live-options">
+          <label class="toggle"><input id="c-mirror" type="checkbox" checked /><span class="track" aria-hidden="true"></span><span>Mirror view</span></label>
+          <label class="toggle"><input id="c-outfit" type="checkbox" /><span class="track" aria-hidden="true"></span><span>Outfit mode: top + bottoms (test)</span></label>
+          <p class="status-line" id="outfit-note"></p>
+          <p class="status-line" id="live-status">Press Start camera, then move naturally.</p>
+        </div>
+
+        <p class="panel-note">
+          Camera frames and photos are processed in memory on our server and never stored.
+        </p>
+
+        <!-- test tools: only shown when the link has ?bench=1 (the manager's link never shows them) -->
+        <div class="bench" id="bench-panel" hidden>
+          <p class="fit-title">Test tools: live numbers, recording, benchmark</p>
+          <div class="stats" id="stats" aria-live="polite">Not connected.</div>
+          <div class="bench-buttons">
+            <button class="btn btn-primary btn-small" id="btn-guided" type="button" disabled>Guided benchmark (44 s)</button>
+            <button class="btn btn-ghost btn-small" id="btn-record" type="button" disabled>Start recording</button>
+          </div>
+          <label class="field">
+            <span>Note (optional)</span>
+            <input id="bench-note" type="text" autocomplete="off" placeholder="e.g. H100 Mumbai, interp 1" />
+          </label>
+          <label class="field">
+            <span>Prompt tester (sent live, no rebuild; 600 characters at most)</span>
+            <textarea id="prompt-test" rows="5" maxlength="600" placeholder="Press 'Show current prompt', edit it, then 'Send prompt'"></textarea>
+          </label>
+          <div class="bench-buttons">
+            <button class="btn btn-ghost btn-small" id="btn-prompt-fill" type="button">Show current prompt</button>
+            <button class="btn btn-primary btn-small" id="btn-prompt-send" type="button">Send prompt</button>
+            <button class="btn btn-ghost btn-small" id="btn-prompt-reset" type="button">Back to default</button>
+          </div>
+          <p class="fine" id="prompt-state" role="status"></p>
+          <div class="bench-buttons">
+            <button class="btn btn-ghost btn-small" id="btn-mark-bad" type="button" disabled>Mark problem (M)</button>
+            <button class="btn btn-ghost btn-small" id="btn-mark-good" type="button" disabled>Looks right (G)</button>
+          </div>
+          <p class="fine" id="bench-status" role="status">
+            Press Start camera first. When a recording or benchmark ends, a .json with all the numbers and a video
+            (your camera on the left, the AI picture on the right) are saved. The video contains your camera image.
+          </p>
+          <div class="bench-buttons" id="bench-files"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- engineering controls of the live page, kept for the shared code but not shown here -->
+    <div class="share-hidden" aria-hidden="true">
+      <input id="srv-url" type="url" /><input id="srv-token" type="password" />
+      <input id="r-send" type="range" min="5" max="30" value="20" /><output id="o-send">20</output>
+      <!-- time-warp off for the demo: the whole AI picture looks natural; the bent garment can look pasted on -->
+      <input id="c-warp" type="checkbox" />
+      <button id="btn-fake" type="button"></button>
+    </div>
+
+    <footer class="footer">
+      <span>Fynd Studio · virtual try-on prototype</span>
+      <span class="fine">Live mode: FLUX.2 Klein on our GPU with real-time pose tracking. Photo mode: the same model at full quality.</span>
+    </footer>
+
+    <script type="module" src="/src/share.ts"></script>
+  </body>
+</html>

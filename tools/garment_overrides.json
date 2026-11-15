@@ -1,0 +1,14 @@
+{
+  "sweatshirt-crew-black": { "shoulderY": 0.10, "shoulderLeft": 0.25, "shoulderRight": 0.77 },
+  "hoodie-varsity-blue":   { "shoulderY": 0.27, "shoulderLeft": 0.14, "shoulderRight": 0.85 },
+  "sweater-vneck-black":   { "shoulderY": 0.085, "shoulderLeft": 0.20, "shoulderRight": 0.78 },
+  "jacket-track-blue":     { "shoulderY": 0.23, "shoulderLeft": 0.18, "shoulderRight": 0.84 },
+  "jacket-puffer-block":   { "shoulderY": 0.14, "shoulderLeft": 0.13, "shoulderRight": 0.87 },
+  "jacket-sport-black":    { "shoulderY": 0.21, "shoulderLeft": 0.14, "shoulderRight": 0.85 },
+  "jacket-club-brown":     { "shoulderY": 0.19, "shoulderLeft": 0.19, "shoulderRight": 0.82 },
+  "jacket-wind-red":       { "shoulderY": 0.38, "shoulderLeft": 0.14, "shoulderRight": 0.85 },
+  "jacket-puffer-grey":    { "shoulderY": 0.19, "shoulderLeft": 0.15, "shoulderRight": 0.86 },
+  "jacket-puffer-olive":   { "shoulderY": 0.17, "shoulderLeft": 0.14, "shoulderRight": 0.86 },
+  "blazer-sage":           { "shoulderY": 0.14, "shoulderLeft": 0.12, "shoulderRight": 0.92 },
+  "blazer-sand":           { "shoulderY": 0.13, "shoulderLeft": 0.12, "shoulderRight": 0.90 }
+}

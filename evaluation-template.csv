@@ -1,0 +1,7 @@
+case_id,person_id,garment_id,scenario,input_clip,reference_image,consent_record,code_revision,model_revision,config_file,garment_identity_1_to_5,person_preservation_1_to_5,temporal_stability_1_to_5,occlusion_1_to_5,generated_fps,display_fps,e2e_latency_p50_ms,e2e_latency_p95_ms,peak_vram_gb,notes
+planned-001,,,front_view_plain_top,,,,,,,,,,,,,,,,
+planned-002,,,gentle_turns_striped_top,,,,,,,,,,,,,,,,
+planned-003,,,arms_crossing_logo_top,,,,,,,,,,,,,,,,
+planned-004,,,side_view_buttoned_shirt,,,,,,,,,,,,,,,,
+planned-005,,,motion_loose_top,,,,,,,,,,,,,,,,
+planned-006,,,lighting_change_same_garment,,,,,,,,,,,,,,,,

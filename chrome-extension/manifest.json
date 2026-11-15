@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Fynd Studio Try-On (Local Preview)",
+  "version": "0.1.0",
+  "description": "Send a product image you select to your Fynd Studio try-on page.",
+  "action": {
+    "default_title": "Try on a product image",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"]
+}
